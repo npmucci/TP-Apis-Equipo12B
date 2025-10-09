@@ -11,118 +11,131 @@ namespace Negocio
     public class ImagenNegocio
 
     {
-       Datos datos = new Datos();
+      
         public List<Imagen> ListarImagenes(int idArticulo)
         {
             List<Imagen> lista = new List<Imagen>();
 
-            //imagenes.setearConsulta("select ImagenUrl from Imagenes where IdArticulo = " + idArticulo + ";");
-            datos.SetearConsulta("select Id,ImagenUrl from Imagenes where IdArticulo = @IdArticulo;");
-            datos.SetearParametro("IdArticulo", idArticulo);
-            datos.EjecutarLectura();
-            try
+            using (Datos datos = new Datos())
             {
-
-                while (datos.Lector.Read())
+                try
                 {
-                    Imagen aux = new Imagen();
-                    aux.Id = (int)datos.Lector["Id"];
-                    aux.Url = (string)datos.Lector["ImagenUrl"];
-                    lista.Add(aux);
+                    //imagenes.setearConsulta("select ImagenUrl from Imagenes where IdArticulo = " + idArticulo + ";");
+                    datos.SetearConsulta("select Id,ImagenUrl from Imagenes where IdArticulo = @IdArticulo;");
+                    datos.SetearParametro("IdArticulo", idArticulo);
+                    datos.EjecutarLectura();
+                    while (datos.Lector.Read())
+                    {
+                        Imagen aux = new Imagen();
+                        aux.Id = (int)datos.Lector["Id"];
+                        aux.Url = (string)datos.Lector["ImagenUrl"];
+                        lista.Add(aux);
+                    }
+                    return lista;
                 }
-                return lista;
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
-            catch (Exception ex)
-            {
-
-                throw ex;
-            }
+         
         }
         public void AgregarImagenes(List<Imagen> urls, int idArticulo)
         {
-            try
+            using (Datos datos = new Datos())
             {
-                foreach (var img in urls)
+                try
                 {
-                    string query = "INSERT INTO IMAGENES (IdArticulo, ImagenUrl) VALUES (@idArticulo, @url)";
-                    datos.SetearConsulta(query);
-                    datos.SetearParametro("@idArticulo", idArticulo);
-                    datos.SetearParametro("@url", img.Url);
-                    datos.EjecutarAccion();
+                    foreach (var img in urls)
+                    {
+                        string query = "INSERT INTO IMAGENES (IdArticulo, ImagenUrl) VALUES (@idArticulo, @url)";
+                        datos.SetearConsulta(query);
+                        datos.SetearParametro("@idArticulo", idArticulo);
+                        datos.SetearParametro("@url", img.Url);
+                        datos.EjecutarAccion();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    datos.CerrarConexion();
+                }
             }
         }
         //elimino todas las imagenes de un articulo para despues agregar las nuevas
         public void EliminarImagen(int idArticulo)
         {
-
-            try
+            using (Datos datos = new Datos())
             {
-                string query = "DELETE FROM IMAGENES WHERE IdArticulo = @idArticulo";
-                datos.SetearConsulta(query);
-                datos.SetearParametro("@idArticulo", idArticulo);
-                datos.EjecutarAccion();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
+                try
+                {
+                    string query = "DELETE FROM IMAGENES WHERE IdArticulo = @idArticulo";
+                    datos.SetearConsulta(query);
+                    datos.SetearParametro("@idArticulo", idArticulo);
+                    datos.EjecutarAccion();
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    datos.CerrarConexion();
+                }
             }
         }
         private void EliminarImagenes(List<Imagen> eliminadas, int idArticulo)
         {
-            try
+            using (Datos datos = new Datos())
             {
-                foreach (Imagen img in eliminadas)
+                try
                 {
-                    string query = "DELETE FROM IMAGENES WHERE IdArticulo = @idArticulo AND ImagenUrl = @url";
-                    datos.SetearConsulta(query);
-                    datos.SetearParametro("@idArticulo", idArticulo);
-                    datos.SetearParametro("@url", img.Url);
-                    datos.EjecutarAccion();
+                    foreach (Imagen img in eliminadas)
+                    {
+                        string query = "DELETE FROM IMAGENES WHERE IdArticulo = @idArticulo AND ImagenUrl = @url";
+                        datos.SetearConsulta(query);
+                        datos.SetearParametro("@idArticulo", idArticulo);
+                        datos.SetearParametro("@url", img.Url);
+                        datos.EjecutarAccion();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+
             }
         }
 
+
         private void InsertarImagenes(List<Imagen> nuevas, int idArticulo)
         {
-            try
+            using (Datos datos = new Datos())
             {
-                foreach (Imagen img in nuevas)
+
+
+                try
                 {
-                    string query = "INSERT INTO IMAGENES (IdArticulo, ImagenUrl) VALUES (@idArticulo, @url)";
-                    datos.SetearConsulta(query);
-                    datos.SetearParametro("@idArticulo", idArticulo);
-                    datos.SetearParametro("@url", img.Url);
-                    datos.EjecutarAccion();
+                    foreach (Imagen img in nuevas)
+                    {
+                        string query = "INSERT INTO IMAGENES (IdArticulo, ImagenUrl) VALUES (@idArticulo, @url)";
+                        datos.SetearConsulta(query);
+                        datos.SetearParametro("@idArticulo", idArticulo);
+                        datos.SetearParametro("@url", img.Url);
+                        datos.EjecutarAccion();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    datos.CerrarConexion();
+                }
             }
         }
 
@@ -131,20 +144,18 @@ namespace Negocio
         {
             List<Imagen> nuevas = ObtenerNuevasImagenes(imagenesActuales, imagenesOriginales);
             List<Imagen> eliminadas = ObtenerImagenesEliminadas(imagenesActuales, imagenesOriginales);
+            using (Datos datos = new Datos())
+            {
 
-
-            try
-            {
-                EliminarImagenes(eliminadas, idArticulo); //borro de la bbdd las imagnes que se eliminaron en el modificar articulo
-                InsertarImagenes(nuevas, idArticulo); //agrego a la bbdd las nuevas imagenes que se agregaron en el modificar articulo
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
+                try
+                {
+                    EliminarImagenes(eliminadas, idArticulo); //borro de la bbdd las imagnes que se eliminaron en el modificar articulo
+                    InsertarImagenes(nuevas, idArticulo); //agrego a la bbdd las nuevas imagenes que se agregaron en el modificar articulo
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
         }
 

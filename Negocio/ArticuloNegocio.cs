@@ -1,148 +1,146 @@
-﻿using System;
+﻿using AccesoDatos;
+using Dominio;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Dominio;
-using AccesoDatos;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Negocio
 {
     public class ArticuloNegocio
     {
-        Datos datos = new Datos();
-        public List<Articulo> Listar(string orden = "")
+
+        public List<Articulo> ListarArticulos()
         {
             List<Articulo> lista = new List<Articulo>();
-           
             ImagenNegocio imagen = new ImagenNegocio();
 
-            try
+            using (Datos datos = new Datos())
             {
-                string query = (@"SELECT A.Id, A.Codigo, A.Nombre, A.Descripcion, A.Precio,
-                M.Id AS IdMarca, M.Descripcion AS Marca,
-                C.Id AS IdCategoria, C.Descripcion AS Categoria
-                FROM dbo.ARTICULOS A
-                JOIN dbo.MARCAS M ON A.IdMarca = M.Id
-                JOIN dbo.CATEGORIAS C ON A.IdCategoria = C.Id");
-                if (orden == "asc")
-                    query += " ORDER BY A.Precio ASC";
-                else if (orden == "desc")
-                    query += " ORDER BY A.Precio DESC";
-
-                datos.SetearConsulta(query);
-                datos.EjecutarLectura();
-
-                while (datos.Lector.Read())
+                try
                 {
-                    Articulo art = new Articulo();
+                    //Agrupo por nombre asi no se repiten articulos
+                    datos.SetearConsulta(@"
+                    SELECT 
+                        MIN(A.Id) AS Id,
+                        A.Nombre,
+                        MIN(A.Descripcion) AS Descripcion,
+                        MIN(M.Descripcion) AS MarcaDescripcion,
+                        MIN(C.Descripcion) AS CategoriaDescripcion
+                    FROM Articulos A
+                    INNER JOIN Marcas M ON A.IdMarca = M.Id
+                    INNER JOIN Categorias C ON A.IdCategoria = C.Id
+                    GROUP BY A.Nombre
+                    ORDER BY A.Nombre
+                ");
+
+                    datos.EjecutarLectura();
+
+                    while (datos.Lector.Read())
                     {
-                        art.Id = (int)datos.Lector["Id"];
-                        art.Codigo = datos.Lector["Codigo"].ToString();
-                        art.Nombre = datos.Lector["Nombre"].ToString();
-                        art.Descripcion = datos.Lector["Descripcion"].ToString();
-                        art.Precio = (decimal)datos.Lector["Precio"];
-                        art.Marca = new Marca();
+                        Articulo art = new Articulo
+                        {
+                            Id = (int)datos.Lector["Id"],
+                            Nombre = (string)datos.Lector["Nombre"],
+                            Descripcion = (string)datos.Lector["Descripcion"],
+                            Marca = new Marca { Descripcion = (string)datos.Lector["MarcaDescripcion"] },
+                            Categoria = new Categoria { Descripcion = (string)datos.Lector["CategoriaDescripcion"] }
+                        };
 
-                        art.Marca.Id = (int)datos.Lector["IdMarca"];
-                        art.Marca.Descripcion = datos.Lector["Marca"].ToString();
 
+                        art.Imagenes = new List<Imagen>();
+                        art.Imagenes = imagen.ListarImagenes(art.Id);
 
-                        art.Categoria = new Categoria();
-
-                        art.Categoria.Id = (int)datos.Lector["IdCategoria"];
-                        art.Categoria.Descripcion = datos.Lector["Categoria"].ToString();
-
+                        lista.Add(art);
                     }
-                    art.Imagenes = new List<Imagen>();
-                    art.Imagenes = imagen.ListarImagenes(art.Id);
-                    lista.Add(art);
+                    return lista;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
                 }
 
-                return lista;
-            }
-            finally
-            {
-                datos.CerrarConexion();
             }
         }
 
         public int AgregarArticulo(Articulo nuevo)
         {
-          
-            try
+            using (Datos datos = new Datos())
             {
-                string query = @"
+
+                try
+                {
+                    string query = @"
                     INSERT INTO ARTICULOS (Codigo, Nombre, Descripcion, IdMarca, IdCategoria, Precio)
                     OUTPUT INSERTED.Id
                     VALUES (@codigo, @nombre, @descripcion, @idMarca, @idCategoria, @precio)";
 
-                datos.SetearConsulta(query);
-                datos.SetearParametro("@codigo", nuevo.Codigo);
-                datos.SetearParametro("@nombre", nuevo.Nombre);
-                datos.SetearParametro("@descripcion", nuevo.Descripcion);
-                datos.SetearParametro("@idMarca", nuevo.Marca.Id);
-                datos.SetearParametro("@idCategoria", nuevo.Categoria.Id);
-                datos.SetearParametro("@precio", nuevo.Precio);
+                    datos.SetearConsulta(query);
+                    datos.SetearParametro("@codigo", nuevo.Codigo);
+                    datos.SetearParametro("@nombre", nuevo.Nombre);
+                    datos.SetearParametro("@descripcion", nuevo.Descripcion);
+                    datos.SetearParametro("@idMarca", nuevo.Marca.Id);
+                    datos.SetearParametro("@idCategoria", nuevo.Categoria.Id);
+                    datos.SetearParametro("@precio", nuevo.Precio);
 
-                return datos.EjecutarAccionEscalar(); // devuelve el Id generado
+                    return datos.EjecutarAccionEscalar(); // devuelve el Id generado
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    datos.CerrarConexion();
+                }
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
-            }
+
         }
-
-
         public void Eliminar(int id)
         {
-            
-            try
+            using (Datos datos = new Datos())
             {
-                datos.SetearConsulta("DELETE FROM ARTICULOS WHERE Id = @id");
-                datos.SetearParametro("@id", id);
-                datos.EjecutarAccion();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
+                try
+                {
+                    datos.SetearConsulta("DELETE FROM ARTICULOS WHERE Id = @id");
+                    datos.SetearParametro("@id", id);
+                    datos.EjecutarAccion();
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
         }
 
         public void Modificar(Articulo articulo)
         {
-           
-            try
+            using (Datos datos = new Datos())
             {
-                string query = "UPDATE ARTICULOS SET Codigo = @codigo,Nombre = @nombre,Descripcion = @descripcion,IdMarca = @idMarca,IdCategoria = @idCategoria,Precio = @precio WHERE Id = @id";
-                datos.SetearConsulta(query);
-                datos.SetearParametro("@codigo", articulo.Codigo);
-                datos.SetearParametro("@nombre", articulo.Nombre);
-                datos.SetearParametro("@descripcion", articulo.Descripcion);
-                datos.SetearParametro("@idMarca", articulo.Marca.Id);
-                datos.SetearParametro("@idCategoria", articulo.Categoria.Id);
-                datos.SetearParametro("@precio", articulo.Precio);
-                datos.SetearParametro("@id", articulo.Id);
-                datos.EjecutarAccion();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
+
+                try
+                {
+                    string query = "UPDATE ARTICULOS SET Codigo = @codigo,Nombre = @nombre,Descripcion = @descripcion,IdMarca = @idMarca,IdCategoria = @idCategoria,Precio = @precio WHERE Id = @id";
+                    datos.SetearConsulta(query);
+                    datos.SetearParametro("@codigo", articulo.Codigo);
+                    datos.SetearParametro("@nombre", articulo.Nombre);
+                    datos.SetearParametro("@descripcion", articulo.Descripcion);
+                    datos.SetearParametro("@idMarca", articulo.Marca.Id);
+                    datos.SetearParametro("@idCategoria", articulo.Categoria.Id);
+                    datos.SetearParametro("@precio", articulo.Precio);
+                    datos.SetearParametro("@id", articulo.Id);
+                    datos.EjecutarAccion();
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+
             }
         }
-
-
     }
+
 }
+

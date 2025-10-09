@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AccesoDatos
 {
-    public class Datos
+    public class Datos : IDisposable  // --> Interfaz IDisposable para usar using() --> (obliga a implementar Dispose())
     {
         private SqlConnection conexion;
         private SqlCommand comando;
@@ -19,7 +19,7 @@ namespace AccesoDatos
         public Datos()
         {
             // Toma la cadena desde Web.config
-            connectionString = ConfigurationManager.ConnectionStrings["CATALOGO_P3_DB"].ConnectionString;
+            connectionString = ConfigurationManager.ConnectionStrings["PROMOS_DB"].ConnectionString;
 
             conexion = new SqlConnection(connectionString);
         }
