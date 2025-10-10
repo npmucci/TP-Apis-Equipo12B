@@ -142,7 +142,52 @@ namespace Negocio
 
             }
         }
-    }
 
+        public bool Existe(int id)
+        {
+           
+            using (AccesoDatos.Datos datos = new AccesoDatos.Datos())
+            {
+                try
+                {
+                    string query = "SELECT COUNT(*) FROM ARTICULOS WHERE Id = @id";
+                    datos.SetearConsulta(query);
+                    datos.SetearParametro("@id", id);
+                    int count = datos.EjecutarAccionEscalar();
+                    return count > 0;
+                }
+                catch (Exception ex)
+                {
+                    
+                    throw ex;
+                }
+            }
+        }
+
+        public bool ExisteCodigo(string codigo)
+        {
+
+            using (AccesoDatos.Datos datos = new AccesoDatos.Datos())
+            {
+                try
+                {
+                    string query = "SELECT COUNT(*) FROM ARTICULOS WHERE CODIGO = @codigo";
+                    datos.SetearConsulta(query);
+                    datos.SetearParametro("@codigo", codigo);
+                    int count = datos.EjecutarAccionEscalar();
+                    return count > 0;
+                }
+                catch (Exception ex)
+                {
+
+                    throw ex;
+                }
+            }
+        }
+
+
+    }
 }
+
+
 

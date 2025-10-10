@@ -79,6 +79,27 @@ namespace Negocio
             }
         }
 
+        public bool Existe(int id)
+        {
+
+            using (AccesoDatos.Datos datos = new AccesoDatos.Datos())
+            {
+                try
+                {
+                    string query = "SELECT COUNT(*) FROM CATEGORIAS WHERE Id = @id";
+                    datos.SetearConsulta(query);
+                    datos.SetearParametro("@id", id);
+                    int count = datos.EjecutarAccionEscalar();
+                    return count > 0;
+                }
+                catch (Exception ex)
+                {
+
+                    throw ex;
+                }
+            }
+        }
+
 
     }
 }
