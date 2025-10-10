@@ -19,7 +19,7 @@ namespace AccesoDatos
         public Datos()
         {
             // Toma la cadena desde Web.config
-            connectionString = ConfigurationManager.ConnectionStrings["PROMOS_DB"].ConnectionString;
+            connectionString = ConfigurationManager.ConnectionStrings["CATALOGO_P3_DB"].ConnectionString;
 
             conexion = new SqlConnection(connectionString);
         }

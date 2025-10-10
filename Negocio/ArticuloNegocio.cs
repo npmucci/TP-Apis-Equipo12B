@@ -3,7 +3,9 @@ using Dominio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -22,19 +24,8 @@ namespace Negocio
                 try
                 {
                     //Agrupo por nombre asi no se repiten articulos
-                    datos.SetearConsulta(@"
-                    SELECT 
-                        MIN(A.Id) AS Id,
-                        A.Nombre,
-                        MIN(A.Descripcion) AS Descripcion,
-                        MIN(M.Descripcion) AS MarcaDescripcion,
-                        MIN(C.Descripcion) AS CategoriaDescripcion
-                    FROM Articulos A
-                    INNER JOIN Marcas M ON A.IdMarca = M.Id
-                    INNER JOIN Categorias C ON A.IdCategoria = C.Id
-                    GROUP BY A.Nombre
-                    ORDER BY A.Nombre
-                ");
+                    datos.SetearConsulta("SELECT A.Id, A.Codigo, A.Nombre, A.Descripcion, A.Precio, M.Id AS IdMarca, M.Descripcion AS MarcaDescripcion, C.Id AS IdCategoria, C.Descripcion AS CategoriaDescripcion FROM Articulos A INNER JOIN Marcas M ON A.IdMarca = M.Id INNER JOIN Categorias C ON A.IdCategoria = C.Id ORDER BY A.Nombre");
+
 
                     datos.EjecutarLectura();
 
@@ -43,10 +34,21 @@ namespace Negocio
                         Articulo art = new Articulo
                         {
                             Id = (int)datos.Lector["Id"],
+                            Codigo = (string)datos.Lector["Codigo"],
                             Nombre = (string)datos.Lector["Nombre"],
                             Descripcion = (string)datos.Lector["Descripcion"],
-                            Marca = new Marca { Descripcion = (string)datos.Lector["MarcaDescripcion"] },
-                            Categoria = new Categoria { Descripcion = (string)datos.Lector["CategoriaDescripcion"] }
+                            Precio = Convert.ToDecimal(datos.Lector["Precio"]),
+
+                            Marca = new Marca
+                            {
+                                Id = (int)datos.Lector["IdMarca"],
+                                Descripcion = (string)datos.Lector["MarcaDescripcion"]
+                            },
+                            Categoria = new Categoria
+                            {
+                                Id = (int)datos.Lector["IdCategoria"],
+                                Descripcion = (string)datos.Lector["CategoriaDescripcion"]
+                            }
                         };
 
 

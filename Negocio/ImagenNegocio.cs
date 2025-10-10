@@ -29,13 +29,14 @@ namespace Negocio
                         Imagen aux = new Imagen();
                         aux.Id = (int)datos.Lector["Id"];
                         aux.Url = (string)datos.Lector["ImagenUrl"];
+                        aux.IdArticulo = idArticulo;
                         lista.Add(aux);
                     }
                     return lista;
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                    throw new Exception("Error al listar las imágenes del artículo con Id " + idArticulo, ex);
                 }
             }
          
