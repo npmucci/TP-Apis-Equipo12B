@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Web.Http;
 using Dominio;
 using Negocio; 
+using Apis_Productos.Models;
 
 namespace Apis_Productos.Controllers
 {
@@ -25,7 +26,12 @@ namespace Apis_Productos.Controllers
         }
 
         // POST: api/Producto
-        public void Post([FromBody]string value)
+        public void Post([FromBody]ArticuloDto articulo)
+        {
+        }
+
+        // POST: api/Imagen
+        public void Post([FromBody] int id, List<ImagenDto> imagenes)
         {
         }
 
