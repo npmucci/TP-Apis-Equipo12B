@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Dominio;
-using Negocio; 
+using Negocio;
 using Apis_Productos.Models;
 
 namespace Apis_Productos.Controllers
@@ -13,7 +13,10 @@ namespace Apis_Productos.Controllers
     [RoutePrefix("api/Articulo")]
     public class ArticuloController : ApiController
     {
+
         // GET: api/Producto
+        [HttpGet]
+        [Route("")]
         public IEnumerable<Articulo> Get()
         {
             ArticuloNegocio negocio = new ArticuloNegocio();
@@ -22,10 +25,10 @@ namespace Apis_Productos.Controllers
 
         // GET: api/Producto/5
         [HttpGet]
-        [Route("{id}", Name = "GetArticuloById")] 
+        [Route("{id}", Name = "GetArticuloById")]
         public IHttpActionResult Get(int id)
         {
-           return Ok(new ArticuloNegocio().ListarArticulos().FirstOrDefault(a => a.Id == id));
+            return Ok(new ArticuloNegocio().ListarArticulos().FirstOrDefault(a => a.Id == id));
         }
 
         // POST: api/Producto
@@ -34,45 +37,26 @@ namespace Apis_Productos.Controllers
         {
             try
             {
-                // Validaciones:
+                ArticuloNegocio ArticuloNegocio = new ArticuloNegocio();
 
-                if (articulo == null)
+                Articulo nuevoArticulo = new Articulo
                 {
-                    return BadRequest("El objeto artículo no puede ser nulo.");
-                }
+                    Codigo = articulo.Codigo,
+                    Nombre = articulo.Nombre,
+                    Descripcion = articulo.Descripcion,
+                    Marca = new Marca { Id = articulo.IdMarca },
+                    Categoria = new Categoria { Id = articulo.IdCategoria },
+                    Precio = articulo.Precio
+                };
 
-                
 
-                if (string.IsNullOrWhiteSpace(articulo.Codigo))
+                string error = ArticuloNegocio.ValidarCampos(nuevoArticulo);
+                if (error != null)
                 {
-                    return BadRequest("El campo 'Codigo' es obligatorio.");
-                }
-                if (articulo.Codigo.Length > 50)
-                {
-                    return BadRequest("El campo 'Codigo' no puede superar los 50 caracteres.");
-                }
-
-                if (string.IsNullOrWhiteSpace(articulo.Nombre))
-                {
-                    return BadRequest("El campo 'Nombre' es obligatorio.");
-                }
-                if (articulo.Nombre.Length > 50)
-                {
-                    return BadRequest("El campo 'Nombre' no puede superar los 50 caracteres.");
-                }
-
-                if (articulo.Descripcion != null && articulo.Descripcion.Length > 150)
-                {
-                    return BadRequest("El campo 'Descripcion' no puede superar los 150 caracteres.");
+                    return BadRequest(error);
                 }
 
 
-                if (articulo.Precio < 0)
-                {
-                    return BadRequest("El campo 'Precio' debe ser un valor positivo.");
-                }
-
-                
                 MarcaNegocio marcaNegocio = new MarcaNegocio();
                 if (!marcaNegocio.Existe(articulo.IdMarca))
                 {
@@ -85,27 +69,7 @@ namespace Apis_Productos.Controllers
                     return BadRequest($"La categoría con ID {articulo.IdCategoria} no existe.");
                 }
 
-                ArticuloNegocio ArticuloNegocio = new ArticuloNegocio();
 
-                
-                if (ArticuloNegocio.ExisteCodigo(articulo.Codigo))
-                {
-                    return BadRequest($"El código de artículo '{articulo.Codigo}' ya está en uso.");
-                }
-
-                // Creacion y agregado:
-
-                Articulo nuevoArticulo = new Articulo
-                {
-                    Codigo = articulo.Codigo,
-                    Nombre = articulo.Nombre,
-                    Descripcion = articulo.Descripcion,
-                    Marca = new Marca { Id = articulo.IdMarca },
-                    Categoria = new Categoria { Id = articulo.IdCategoria },
-                    Precio = articulo.Precio
-                };
-
-                
                 int nuevoId = ArticuloNegocio.AgregarArticulo(nuevoArticulo);
 
 
@@ -118,6 +82,7 @@ namespace Apis_Productos.Controllers
         }
 
         // POST: api/Imagen
+        [HttpPost]
         [Route("{id}/imagenes")]
         public IHttpActionResult Post(int id, [FromBody] List<ImagenDto> imagenes)
         {
@@ -133,7 +98,7 @@ namespace Apis_Productos.Controllers
                     return Content(HttpStatusCode.NotFound, respuesta);
                 }
 
-                
+
                 if (imagenes == null || !imagenes.Any())
                 {
                     // 400 Bad Request si no se enviaron imagenes...
@@ -147,20 +112,69 @@ namespace Apis_Productos.Controllers
 
                 imagenNegocio.AgregarImagenes(listaImagenes, id);
 
-                
+
                 return Ok("Imágenes agregadas correctamente.");
                 // Retorna un 200 OK.
             }
             catch (Exception ex)
             {
-                
+
                 return InternalServerError(ex);
             }
         }
 
-        // PUT: api/Producto/5
-        public void Put(int id, [FromBody]string value)
+        // PUT: api/Articulo/5
+        [HttpPut]
+        [Route("{id}")]
+        public IHttpActionResult Put(int id, [FromBody] ArticuloDto articuloDto)
         {
+            try
+            {
+                ArticuloNegocio negocio = new ArticuloNegocio();
+
+                if (!negocio.Existe(id))
+                {
+                    return Content(HttpStatusCode.NotFound, $"El artículo con ID {id} no fue encontrado.");
+                }
+
+                Articulo articuloModificado = new Articulo
+                {
+                    Id = id,
+                    Codigo = articuloDto.Codigo,
+                    Nombre = articuloDto.Nombre,
+                    Descripcion = articuloDto.Descripcion,
+                    Marca = new Marca { Id = articuloDto.IdMarca },
+                    Categoria = new Categoria { Id = articuloDto.IdCategoria },
+                    Precio = articuloDto.Precio
+                };
+
+
+                string error = negocio.ValidarCampos(articuloModificado);
+                if (error != null)
+                {
+                    return BadRequest(error);
+                }
+
+
+                if (!new MarcaNegocio().Existe(articuloDto.IdMarca))
+                {
+                    return BadRequest($"La marca con ID {articuloDto.IdMarca} no existe.");
+                }
+                if (!new CategoriaNegocio().Existe(articuloDto.IdCategoria))
+                {
+                    return BadRequest($"La categoría con ID {articuloDto.IdCategoria} no existe.");
+                }
+
+
+                negocio.Modificar(articuloModificado);
+
+
+                return Ok("Artículo modificado correctamente.");
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
         }
 
         // DELETE: api/Producto/5

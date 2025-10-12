@@ -185,6 +185,54 @@ namespace Negocio
             }
         }
 
+        public string ValidarCampos(Articulo articulo)
+        {
+
+            if (articulo == null)
+            {
+                return "El objeto artículo no puede ser nulo.";
+            }
+
+
+            if (string.IsNullOrWhiteSpace(articulo.Codigo))
+            {
+                return "El campo 'Codigo' es obligatorio.";
+            }
+            if (articulo.Codigo.Length > 50)
+            {
+                return "El campo 'Codigo' no puede superar los 50 caracteres.";
+            }
+            if (ExisteCodigo(articulo.Codigo))
+            {
+                return $"El código de artículo '{articulo.Codigo}' ya está en uso.";
+            }
+
+
+            if (string.IsNullOrWhiteSpace(articulo.Nombre))
+            {
+                return "El campo 'Nombre' es obligatorio.";
+            }
+            if (articulo.Nombre.Length > 50)
+            {
+                return "El campo 'Nombre' no puede superar los 50 caracteres.";
+            }
+
+
+            if (articulo.Descripcion != null && articulo.Descripcion.Length > 150)
+            {
+                return "El campo 'Descripcion' no puede superar los 150 caracteres.";
+            }
+
+
+            if (articulo.Precio < 0)
+            {
+                return "El campo 'Precio' debe ser mayor o igual a cero.";
+            }
+
+
+            return null;
+        }
+
 
     }
 }
