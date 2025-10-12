@@ -39,6 +39,12 @@ namespace Apis_Productos.Controllers
             {
                 ArticuloNegocio ArticuloNegocio = new ArticuloNegocio();
 
+                if (articulo == null)
+                {
+                    return BadRequest("El cuerpo de la solicitud no puede estar vacío.");
+                }
+
+
                 Articulo nuevoArticulo = new Articulo
                 {
                     Codigo = articulo.Codigo,
@@ -135,6 +141,11 @@ namespace Apis_Productos.Controllers
                 if (!negocio.Existe(id))
                 {
                     return Content(HttpStatusCode.NotFound, $"El artículo con ID {id} no fue encontrado.");
+                }
+
+                if (articuloDto == null)
+                {
+                    return BadRequest("El cuerpo de la solicitud no puede estar vacío.");
                 }
 
                 Articulo articuloModificado = new Articulo
