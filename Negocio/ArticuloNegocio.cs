@@ -91,7 +91,7 @@ namespace Negocio
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                    throw new Exception("Error al buscar artículos", ex);
                 }
                 finally
                 {
@@ -104,6 +104,56 @@ namespace Negocio
         {
             return ListarArticulos().Find(a => a.Id == id);
         }
+        public List<Articulo> BuscarPorMarca(string descripcionMarca)
+        {
+            try
+            {
+                List<Articulo> lista = ListarArticulos();
+                return lista.FindAll(a =>
+                    a.Marca != null &&
+                    a.Marca.Descripcion.ToLower().Contains(descripcionMarca.ToLower())
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al buscar artículos por marca: " + ex.Message);
+            }
+        }
+
+
+        public List<Articulo> BuscarPorCategoria(string descripcionCategoria)
+        {
+            try
+            {
+                List<Articulo> lista = ListarArticulos();
+                return lista.FindAll(a =>
+                    a.Categoria != null &&
+                    a.Categoria.Descripcion.ToLower().Contains(descripcionCategoria.ToLower())
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al buscar artículos por categoría: " + ex.Message);
+            }
+        }
+
+        public List<Articulo> BuscarPorMarcaYCategoria(string descripcionMarca, string descripcionCategoria)
+        {
+            try
+            {
+                List<Articulo> lista = ListarArticulos();
+                return lista.FindAll(a =>
+                    a.Marca != null && a.Categoria != null &&
+                    a.Marca.Descripcion.ToLower().Contains(descripcionMarca.ToLower()) &&
+                    a.Categoria.Descripcion.ToLower().Contains(descripcionCategoria.ToLower())
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al buscar artículos por marca y categoría: " + ex.Message);
+            }
+        }
+
 
         public void Eliminar(int id)
         {
@@ -150,7 +200,7 @@ namespace Negocio
 
         public bool Existe(int id)
         {
-           
+
             using (AccesoDatos.Datos datos = new AccesoDatos.Datos())
             {
                 try
@@ -163,7 +213,7 @@ namespace Negocio
                 }
                 catch (Exception ex)
                 {
-                    
+
                     throw ex;
                 }
             }

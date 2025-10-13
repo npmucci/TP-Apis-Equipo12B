@@ -13,15 +13,14 @@ namespace Apis_Productos.Controllers
     [RoutePrefix("api/Articulo")]
     public class ArticuloController : ApiController
     {
+        private readonly ArticuloNegocio artNegocio = new ArticuloNegocio();
 
         // GET: api/Articulo
         [HttpGet]
         [Route("")]
         public IHttpActionResult Get()
         {
-
-            ArticuloNegocio negocio = new ArticuloNegocio();
-            List<Articulo> articulos = negocio.ListarArticulos();
+            List<Articulo> articulos = artNegocio.ListarArticulos();
             try
             {
 
@@ -41,27 +40,115 @@ namespace Apis_Productos.Controllers
             }
         }
 
+        //---------------------------FILTROS-------------------------//
+
         // GET: api/Articulo/5
         [HttpGet]
-        [Route("{id}", Name = "GetArticuloById")]
-        public IHttpActionResult Get(int id)
+        [Route("{id}")]
+        public HttpResponseMessage Get(int id)
         {
             try
             {
-                ArticuloNegocio artNegocio = new ArticuloNegocio();
                 Articulo articulo = artNegocio.BuscarPorId(id);
 
                 if (articulo == null)
-                    return Content(HttpStatusCode.NotFound, $"No se encontró ningún artículo con el ID {id}.");
+                {
+                    return Request.CreateResponse(HttpStatusCode.NotFound, $"No se encontró ningún artículo con el ID {id}.");
+                }
 
-                return Ok(articulo);
+                return Request.CreateResponse(HttpStatusCode.OK, articulo);
             }
             catch (Exception ex)
             {
-                return Content(HttpStatusCode.InternalServerError, "Error del servidor al obtener el artículo: " + ex.Message);
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, "Error del servidor al obtener el artículo: " + ex.Message);
             }
         }
 
+
+        // GET: api/Articulo/Marca?descripcion=Apple
+        [HttpGet]
+        [Route("Marca")]
+        public HttpResponseMessage BuscarPorMarca(string descripcion)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(descripcion))
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Debe especificar una descripción de marca.");
+                }
+
+                List<Articulo> lista = artNegocio.BuscarPorMarca(descripcion);
+
+                if (lista.Count == 0)
+                {
+                    return Request.CreateResponse(HttpStatusCode.NotFound, $"No se encontraron artículos con la marca '{descripcion}'.");
+                }
+
+                return Request.CreateResponse(HttpStatusCode.OK, lista);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, "Error al buscar artículos: " + ex.Message);
+            }
+        }
+
+
+        // GET: api/Articulo/Categoria?descripcion=Celulares
+        [HttpGet]
+        [Route("Categoria")]
+        public HttpResponseMessage BuscarPorCategoria(string descripcion)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(descripcion))
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Debe especificar una descripción de categoría.");
+                }
+
+                List<Articulo> lista = artNegocio.BuscarPorCategoria(descripcion);
+
+                if (lista.Count == 0)
+                {
+                    return Request.CreateResponse(HttpStatusCode.NotFound, $"No se encontraron artículos con la categoría '{descripcion}'.");
+                }
+
+                return Request.CreateResponse(HttpStatusCode.OK, lista);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, "Error al buscar artículos: " + ex.Message);
+            }
+        }
+
+
+        // GET: api/Articulo/MarcaYCategoria?marca=Apple&categoria=Celulares
+        [HttpGet]
+        [Route("MarcaYCategoria")]
+        public HttpResponseMessage BuscarPorMarcaYCategoria(string marca, string categoria)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(marca) || string.IsNullOrWhiteSpace(categoria))
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Debe especificar descripción de marca y categoría.");
+                }
+
+                List<Articulo> lista = artNegocio.BuscarPorMarcaYCategoria(marca, categoria);
+
+                if (lista.Count == 0)
+                {
+                    return Request.CreateResponse(HttpStatusCode.NotFound, $"No se encontraron artículos con marca '{marca}' y categoría '{categoria}'.");
+                }
+
+                return Request.CreateResponse(HttpStatusCode.OK, lista);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, "Error al buscar artículos: " + ex.Message);
+            }
+        }
+
+        //---------------------------ALTA Y MODIFICACION -------------------------//
 
         // POST: api/Articulo
         [HttpPost, Route("")]
@@ -69,7 +156,7 @@ namespace Apis_Productos.Controllers
         {
             try
             {
-                ArticuloNegocio ArticuloNegocio = new ArticuloNegocio();
+
 
                 if (articulo == null)
                 {
@@ -88,7 +175,7 @@ namespace Apis_Productos.Controllers
                 };
 
 
-                string error = ArticuloNegocio.ValidarCampos(nuevoArticulo);
+                string error = artNegocio.ValidarCampos(nuevoArticulo);
                 if (error != null)
                 {
                     return BadRequest(error);
@@ -108,7 +195,7 @@ namespace Apis_Productos.Controllers
                 }
 
 
-                int nuevoId = ArticuloNegocio.AgregarArticulo(nuevoArticulo);
+                int nuevoId = artNegocio.AgregarArticulo(nuevoArticulo);
 
 
                 return CreatedAtRoute("GetArticuloById", new { id = nuevoId }, nuevoArticulo);
@@ -128,8 +215,7 @@ namespace Apis_Productos.Controllers
             {
                 //  VALIDACIÓN
 
-                ArticuloNegocio articuloNegocio = new ArticuloNegocio();
-                if (!articuloNegocio.Existe(id))
+                if (!artNegocio.Existe(id))
                 {
                     // 404 Not Found si el ID no existe...
                     var respuesta = new { Message = "El artículo con el ID " + id + " no fue encontrado." };
@@ -168,9 +254,9 @@ namespace Apis_Productos.Controllers
         {
             try
             {
-                ArticuloNegocio negocio = new ArticuloNegocio();
 
-                if (!negocio.Existe(id))
+
+                if (!artNegocio.Existe(id))
                 {
                     return Content(HttpStatusCode.NotFound, $"El artículo con ID {id} no fue encontrado.");
                 }
@@ -192,7 +278,7 @@ namespace Apis_Productos.Controllers
                 };
 
 
-                string error = negocio.ValidarCampos(articuloModificado);
+                string error = artNegocio.ValidarCampos(articuloModificado);
                 if (error != null)
                 {
                     return BadRequest(error);
@@ -209,7 +295,7 @@ namespace Apis_Productos.Controllers
                 }
 
 
-                negocio.Modificar(articuloModificado);
+                artNegocio.Modificar(articuloModificado);
 
 
                 return Ok("Artículo modificado correctamente.");
@@ -219,6 +305,8 @@ namespace Apis_Productos.Controllers
                 return InternalServerError(ex);
             }
         }
+
+        //---------------------------ELIMINACION-------------------------//
 
         // DELETE: api/Producto/5
         public void Delete(int id)
