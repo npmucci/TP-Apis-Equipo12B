@@ -14,24 +14,56 @@ namespace Apis_Productos.Controllers
     public class ArticuloController : ApiController
     {
 
-        // GET: api/Producto
+        // GET: api/Articulo
         [HttpGet]
         [Route("")]
-        public IEnumerable<Articulo> Get()
+        public IHttpActionResult Get()
         {
+
             ArticuloNegocio negocio = new ArticuloNegocio();
-            return negocio.ListarArticulos();
+            List<Articulo> articulos = negocio.ListarArticulos();
+            try
+            {
+
+                if (articulos == null || articulos.Count == 0)
+                {
+
+                    return Content(HttpStatusCode.NotFound, "No se encontraron artículos en la base de datos.");
+                }
+
+
+                return Ok(articulos);
+            }
+            catch (Exception ex)
+            {
+
+                return Content(HttpStatusCode.InternalServerError, "Error del servidor al obtener los artículos: " + ex.Message);
+            }
         }
 
-        // GET: api/Producto/5
+        // GET: api/Articulo/5
         [HttpGet]
         [Route("{id}", Name = "GetArticuloById")]
         public IHttpActionResult Get(int id)
         {
-            return Ok(new ArticuloNegocio().ListarArticulos().FirstOrDefault(a => a.Id == id));
+            try
+            {
+                ArticuloNegocio artNegocio = new ArticuloNegocio();
+                Articulo articulo = artNegocio.BuscarPorId(id);
+
+                if (articulo == null)
+                    return Content(HttpStatusCode.NotFound, $"No se encontró ningún artículo con el ID {id}.");
+
+                return Ok(articulo);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.InternalServerError, "Error del servidor al obtener el artículo: " + ex.Message);
+            }
         }
 
-        // POST: api/Producto
+
+        // POST: api/Articulo
         [HttpPost, Route("")]
         public IHttpActionResult Post([FromBody] ArticuloDto articulo)
         {

@@ -100,6 +100,11 @@ namespace Negocio
             }
 
         }
+        public Articulo BuscarPorId(int id)
+        {
+            return ListarArticulos().Find(a => a.Id == id);
+        }
+
         public void Eliminar(int id)
         {
             using (Datos datos = new Datos())
