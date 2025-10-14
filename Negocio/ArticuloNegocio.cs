@@ -161,6 +161,10 @@ namespace Negocio
             {
                 try
                 {
+                    datos.SetearConsulta("DELETE FROM IMAGENES WHERE IdArticulo = @id");
+                    datos.SetearParametro("@id", id);
+                    datos.EjecutarAccion();
+
                     datos.SetearConsulta("DELETE FROM ARTICULOS WHERE Id = @id");
                     datos.SetearParametro("@id", id);
                     datos.EjecutarAccion();
