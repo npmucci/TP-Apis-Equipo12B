@@ -309,8 +309,30 @@ namespace Apis_Productos.Controllers
         //---------------------------ELIMINACION-------------------------//
 
         // DELETE: api/Producto/5
-        public void Delete(int id)
+        [HttpDelete]
+        [Route("{id}")]
+        public IHttpActionResult Delete(int id)
         {
+            
+            try
+            {
+                ArticuloNegocio artNegocio = new ArticuloNegocio();
+
+                
+                if (!artNegocio.Existe(id))
+                {
+                    return Content(HttpStatusCode.NotFound, $"El artículo con ID {id} no fue encontrado.");
+                }
+
+                
+                artNegocio.Eliminar(id);
+
+                return Ok($"Artículo con ID {id} eliminado correctamente.");
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
         }
     }
 }
