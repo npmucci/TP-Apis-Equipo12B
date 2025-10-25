@@ -261,10 +261,7 @@ namespace Negocio
             {
                 return "El campo 'Codigo' no puede superar los 50 caracteres.";
             }
-            if (ExisteCodigo(articulo.Codigo))
-            {
-                return $"El código de artículo '{articulo.Codigo}' ya está en uso.";
-            }
+           
 
 
             if (string.IsNullOrWhiteSpace(articulo.Nombre))

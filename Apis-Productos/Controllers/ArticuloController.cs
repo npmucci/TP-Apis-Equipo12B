@@ -44,7 +44,7 @@ namespace Apis_Productos.Controllers
 
         // GET: api/Articulo/5
         [HttpGet]
-        [Route("{id}")]
+        [Route("{id}", Name = "GetArticuloById")]
         public HttpResponseMessage Get(int id)
         {
             try
@@ -179,6 +179,11 @@ namespace Apis_Productos.Controllers
                 if (error != null)
                 {
                     return BadRequest(error);
+                }
+
+                if (artNegocio.ExisteCodigo(nuevoArticulo.Codigo))
+                {
+                    return BadRequest($"El código de artículo '{articulo.Codigo}' ya está en uso.");
                 }
 
 
